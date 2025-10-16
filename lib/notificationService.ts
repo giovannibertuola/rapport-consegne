@@ -1,5 +1,5 @@
 import { supabase, Notification } from './supabase'
-// import { bayleisService } from './bayleisService' // Temporaneamente commentato per il build
+import { bayleisService } from './bayleisService'
 import toast from 'react-hot-toast'
 
 export class NotificationService {
@@ -194,8 +194,12 @@ export class NotificationService {
 
   // Manteniamo anche SMS per compatibilità
   async sendSMSNotification(phoneNumber: string, message: string): Promise<void> {
-    // Per ora usa la simulazione WhatsApp - Bayleis sarà integrato nel prossimo aggiornamento
-    return this.sendWhatsAppNotification(phoneNumber, message)
+    // Prova prima con Bayleis, poi fallback alla simulazione
+    const success = await bayleisService.sendMessage(phoneNumber, message)
+    if (!success) {
+      // Fallback alla simulazione se Bayleis non è configurato
+      return this.sendWhatsAppNotification(phoneNumber, message)
+    }
   }
 
   // Ascolta le notifiche in tempo reale

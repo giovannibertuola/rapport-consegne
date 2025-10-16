@@ -6,7 +6,7 @@ import { userService, allarmeService, targaService } from '@/lib/database'
 import { Allarme, Targa } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { Plus, Trash2, Edit, Clock, Car, Smartphone } from 'lucide-react'
-// import BayleisConfig from './BayleisConfig' // Temporaneamente commentato per il build
+import BayleisConfig from './BayleisConfig'
 
 interface AdminPanelProps {
   user: AppUser
@@ -535,25 +535,7 @@ export default function AdminPanel({ user }: AdminPanelProps) {
 
         {/* WhatsApp Tab */}
         {activeTab === 'whatsapp' && (
-          <div className="card">
-            <div className="text-center py-12">
-              <Smartphone className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Configurazione WhatsApp
-              </h3>
-              <p className="text-gray-500 mb-4">
-                La configurazione Bayleis sarà disponibile nel prossimo aggiornamento.
-              </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-                <p className="text-sm text-blue-700">
-                  <strong>Prossimamente:</strong><br />
-                  • Setup con QR Code<br />
-                  • Invio messaggi WhatsApp automatici<br />
-                  • Reset e riconfigurazione
-                </p>
-              </div>
-            </div>
-          </div>
+          <BayleisConfig />
         )}
       </div>
     </div>
