@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { bayleisService, BayleisConfig } from '@/lib/bayleisService'
+import { bayleisService, type BayleisConfig } from '@/lib/bayleisService'
 import { Smartphone, QrCode, CheckCircle, XCircle, RotateCcw, Loader, Wifi, WifiOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
