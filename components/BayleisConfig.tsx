@@ -162,7 +162,7 @@ export default function BayleisConfig() {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-medium text-gray-900 flex items-center">
           <Smartphone className="h-5 w-5 mr-2" />
-          Configurazione WhatsApp (Bayleis)
+          Configurazione WhatsApp Web
         </h3>
         {config && (
           <button
@@ -179,38 +179,39 @@ export default function BayleisConfig() {
       {showSetupForm && (
         <form onSubmit={handleSetupSubmit} className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-blue-900 mb-2">🚀 Prima configurazione</h4>
+            <h4 className="font-medium text-blue-900 mb-2">🚀 Configurazione WhatsApp Web</h4>
             <p className="text-sm text-blue-700">
-              Inserisci i dati del tuo account Bayleis per configurare l'invio di messaggi WhatsApp automatici.
+              Configura una sessione WhatsApp Web per inviare messaggi automatici. Completamente gratuito!
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Instance ID
+                Nome Sessione
               </label>
               <input
                 type="text"
                 required
                 className="input-field"
-                placeholder="es: instance_123456"
+                placeholder="es: rapporti-consegne"
                 value={formData.instance_id}
                 onChange={(e) => setFormData(prev => ({ ...prev, instance_id: e.target.value }))}
               />
+              <p className="text-xs text-gray-500 mt-1">Nome identificativo per questa sessione WhatsApp</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                API Key
+                Chiave Sessione (opzionale)
               </label>
               <input
                 type="password"
-                required
                 className="input-field"
-                placeholder="La tua API key Bayleis"
+                placeholder="Lascia vuoto per generazione automatica"
                 value={formData.api_key}
-                onChange={(e) => setFormData(prev => ({ ...prev, api_key: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, api_key: e.target.value || 'auto-generated' }))}
               />
+              <p className="text-xs text-gray-500 mt-1">Per sicurezza aggiuntiva (opzionale)</p>
             </div>
           </div>
 

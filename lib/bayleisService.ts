@@ -115,28 +115,25 @@ export class BayleisService {
     }
   }
 
-  // Genera un nuovo QR code per l'istanza
+  // Genera un nuovo QR code usando whatsapp-web.js
   async generateQRCode(instanceId: string, apiKey: string): Promise<string | null> {
     try {
-      // Per ora generiamo un QR code di esempio
-      // In produzione, qui faresti una chiamata alle API di Bayleis:
-      /*
-      const response = await fetch('https://api.bayleis.com/v1/qr-code', {
+      // Inizializza la connessione WhatsApp Web
+      const response = await fetch('/api/whatsapp/generate-qr', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          instance_id: instanceId
+          instance_id: instanceId,
+          session_name: `session_${instanceId}`
         })
       });
 
       if (response.ok) {
         const result = await response.json();
-        return result.qr_code; // Base64 dell'immagine QR
+        return result.qr_code; // QR code reale di WhatsApp
       }
-      */
 
       // QR code di esempio per il demo
       const qrCodeSVG = `
@@ -206,18 +203,35 @@ export class BayleisService {
     }
   }
 
-  // Invia messaggio WhatsApp
+  // Invia messaggio WhatsApp usando whatsapp-web.js
   async sendMessage(phoneNumber: string, message: string): Promise<boolean> {
     try {
       const config = await this.getConfig()
       if (!config || !config.is_connected) {
-        console.log('Bayleis non configurato, uso simulazione')
+        console.log('WhatsApp non configurato o non connesso')
         return false
       }
 
-      // In produzione faresti una chiamata alle API di Bayleis
-      console.log(`WhatsApp message sent via Bayleis to ${phoneNumber}: ${message}`)
-      return true
+      const response = await fetch('/api/whatsapp/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          message: message,
+          instance_id: config.instance_id
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('WhatsApp message sent successfully:', result);
+        return true;
+      } else {
+        console.error('Failed to send WhatsApp message:', response.status);
+        return false;
+      }
     } catch (error) {
       console.error('Error sending WhatsApp message:', error)
       return false
