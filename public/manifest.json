@@ -1,0 +1,27 @@
+{
+  "name": "Sistema Rapporti Consegne",
+  "short_name": "Rapporti",
+  "description": "Sistema per la gestione dei rapporti giornalieri dei corrieri",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "lang": "it",
+  "dir": "ltr"
+}

@@ -1,5 +1,4 @@
-import { supabase, Notification } from './supabase'
-import { bayleisService } from './bayleisService'
+import { supabase } from './supabase'
 import toast from 'react-hot-toast'
 
 export class NotificationService {
@@ -14,213 +13,203 @@ export class NotificationService {
     return NotificationService.instance
   }
 
-  // Crea una notifica nel database
-  async createNotification(notification: Omit<Notification, 'id' | 'created_at'>): Promise<Notification | null> {
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert([notification])
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Error creating notification:', error)
-        return null
-      }
-
-      return data
-    } catch (error) {
-      console.error('Error creating notification:', error)
-      return null
-    }
-  }
-
-  // Ottiene le notifiche per un utente
-  async getUserNotifications(userId: string, unreadOnly: boolean = false): Promise<Notification[]> {
-    try {
-      let query = supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-
-      if (unreadOnly) {
-        query = query.eq('read', false)
-      }
-
-      const { data, error } = await query
-
-      if (error) {
-        console.error('Error fetching notifications:', error)
-        return []
-      }
-
-      return data || []
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
-      return []
-    }
-  }
-
-  // Marca una notifica come letta
-  async markAsRead(notificationId: string): Promise<boolean> {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', notificationId)
-
-      if (error) {
-        console.error('Error marking notification as read:', error)
-        return false
-      }
-
-      return true
-    } catch (error) {
-      console.error('Error marking notification as read:', error)
+  // Richiede permessi per le notifiche push
+  async requestNotificationPermission(): Promise<boolean> {
+    if (!('Notification' in window)) {
+      console.log('This browser does not support notifications')
       return false
     }
+
+    if (Notification.permission === 'granted') {
+      return true
+    }
+
+    if (Notification.permission !== 'denied') {
+      const permission = await Notification.requestPermission()
+      return permission === 'granted'
+    }
+
+    return false
   }
 
-  // Marca tutte le notifiche di un utente come lette
-  async markAllAsRead(userId: string): Promise<boolean> {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', userId)
-        .eq('read', false)
-
-      if (error) {
-        console.error('Error marking all notifications as read:', error)
+  // Registra il service worker
+  async registerServiceWorker(): Promise<boolean> {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js')
+        console.log('Service Worker registered successfully:', registration)
+        return true
+      } catch (error) {
+        console.error('Service Worker registration failed:', error)
         return false
       }
-
-      return true
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error)
-      return false
     }
+    return false
   }
 
-  // Invia notifica push (simulata con toast per ora)
-  async sendPushNotification(userId: string, title: string, message: string, type: 'info' | 'warning' | 'error' | 'success' = 'info'): Promise<void> {
+  // Invia notifica push
+  async sendPushNotification(title: string, body: string, data?: any): Promise<void> {
     try {
-      // Crea la notifica nel database
-      await this.createNotification({
-        user_id: userId,
-        title,
-        message,
-        type,
-        read: false
+      const hasPermission = await this.requestNotificationPermission()
+      if (!hasPermission) {
+        console.log('Notification permission denied')
+        return
+      }
+
+      const registration = await navigator.serviceWorker.ready
+      
+      await registration.showNotification(title, {
+        body: body,
+        icon: '/icon-192x192.png',
+        badge: '/icon-192x192.png',
+        vibrate: [100, 50, 100],
+        data: data,
+        actions: [
+          {
+            action: 'open',
+            title: 'Apri Form',
+            icon: '/icon-192x192.png'
+          },
+          {
+            action: 'close',
+            title: 'Chiudi',
+            icon: '/icon-192x192.png'
+          }
+        ],
+        requireInteraction: true
       })
 
-      // Mostra toast notification se l'utente è attivo
-      switch (type) {
-        case 'success':
-          toast.success(`${title}: ${message}`)
-          break
-        case 'error':
-          toast.error(`${title}: ${message}`)
-          break
-        case 'warning':
-          toast(`${title}: ${message}`, { icon: '⚠️' })
-          break
-        default:
-          toast(`${title}: ${message}`)
-      }
-
-      console.log(`Notification sent to user ${userId}: ${title} - ${message}`)
+      console.log('Push notification sent successfully')
     } catch (error) {
       console.error('Error sending push notification:', error)
     }
   }
 
-  // Invia notifica email (simulata per ora)
-  async sendEmailNotification(email: string, subject: string, message: string): Promise<void> {
-    try {
-      // Qui potresti integrare con un servizio email come SendGrid, Resend, etc.
-      console.log(`Email notification sent to ${email}:`)
-      console.log(`Subject: ${subject}`)
-      console.log(`Message: ${message}`)
-      
-      // Per ora mostriamo un toast
-      toast.success(`Email inviata a ${email}`)
-    } catch (error) {
-      console.error('Error sending email notification:', error)
+  // Invia notifica per rapporto mancante
+  async sendMissingReportNotification(userEmail: string, turno: string): Promise<void> {
+    const title = 'Rapporto Giornaliero Mancante'
+    const body = `È ora di inviare il rapporto per il turno ${turno}. Clicca per aprire il form.`
+    const data = {
+      user: userEmail,
+      action: 'open_form',
+      url: `/rapporto/${userEmail}`
     }
+
+    await this.sendPushNotification(title, body, data)
   }
 
-  // Invia messaggio WhatsApp tramite Bayleis
-  async sendWhatsAppNotification(phoneNumber: string, message: string): Promise<void> {
-    try {
-      // Per attivare WhatsApp con Bayleis:
-      // 1. Registrati su bayleis.com
-      // 2. Configura le variabili d'ambiente BAYLEIS_API_KEY, BAYLEIS_INSTANCE_ID
-      // 3. Decommentare il codice sotto:
-      
-      /*
-      const response = await fetch('https://api.bayleis.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.BAYLEIS_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          instance_id: process.env.BAYLEIS_INSTANCE_ID,
-          to: phoneNumber.replace(/\s+/g, ''), // Rimuove spazi
-          message: message,
-          type: 'text'
-        })
-      });
+  // Invia notifica di promemoria
+  async sendReminderNotification(userEmail: string, turno: string, minutesLeft: number): Promise<void> {
+    const title = 'Promemoria Rapporto'
+    const body = `Mancano ${minutesLeft} minuti per inviare il rapporto del turno ${turno}.`
+    const data = {
+      user: userEmail,
+      action: 'reminder',
+      url: `/rapporto/${userEmail}`
+    }
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('WhatsApp message sent successfully:', result);
-        toast.success(`WhatsApp inviato a ${phoneNumber}`);
-      } else {
-        throw new Error(`Bayleis API error: ${response.status}`);
+    await this.sendPushNotification(title, body, data)
+  }
+
+  // Controlla e invia notifiche per rapporti mancanti
+  async checkAndSendMissingReports(): Promise<void> {
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      
+      // Ottieni tutti gli utenti
+      const { data: users, error: usersError } = await supabase
+        .from('utenti')
+        .select('*')
+        .eq('privilegi', 'utente')
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError)
+        return
       }
-      */
-      
-      // Per ora simulato
-      console.log(`WhatsApp notification sent to ${phoneNumber}: ${message}`)
-      toast.success(`WhatsApp inviato a ${phoneNumber}`)
-    } catch (error) {
-      console.error('Error sending WhatsApp notification:', error)
-      toast.error('Errore invio WhatsApp')
-    }
-  }
 
-  // Manteniamo anche SMS per compatibilità
-  async sendSMSNotification(phoneNumber: string, message: string): Promise<void> {
-    // Prova prima con Bayleis, poi fallback alla simulazione
-    const success = await bayleisService.sendMessage(phoneNumber, message)
-    if (!success) {
-      // Fallback alla simulazione se Bayleis non è configurato
-      return this.sendWhatsAppNotification(phoneNumber, message)
-    }
-  }
+      // Ottieni i rapporti di oggi
+      const { data: reports, error: reportsError } = await supabase
+        .from('rapporti')
+        .select('operatore')
+        .eq('data', today)
 
-  // Ascolta le notifiche in tempo reale
-  subscribeToNotifications(userId: string, callback: (notification: Notification) => void) {
-    const subscription = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          callback(payload.new as Notification)
+      if (reportsError) {
+        console.error('Error fetching reports:', reportsError)
+        return
+      }
+
+      const reportedUsers = new Set(reports?.map(r => r.operatore) || [])
+
+      // Invia notifiche agli utenti che non hanno inviato il rapporto
+      for (const user of users || []) {
+        if (!reportedUsers.has(user.email)) {
+          await this.sendMissingReportNotification(user.email, user.turno || 'non specificato')
         }
-      )
-      .subscribe()
+      }
 
-    return subscription
+    } catch (error) {
+      console.error('Error checking missing reports:', error)
+    }
+  }
+
+  // Programma notifiche automatiche basate sui turni
+  async scheduleTurnNotifications(): Promise<void> {
+    try {
+      const { data: users, error } = await supabase
+        .from('utenti')
+        .select('*')
+        .eq('privilegi', 'utente')
+        .not('turno', 'is', null)
+
+      if (error) {
+        console.error('Error fetching users with shifts:', error)
+        return
+      }
+
+      for (const user of users || []) {
+        if (user.turno === 'mattina') {
+          // Notifica alle 17:00 per turno mattina
+          this.scheduleNotification(user.email, 17, 0, 'mattina')
+        } else if (user.turno === 'pomeriggio') {
+          // Notifica alle 20:00 per turno pomeriggio
+          this.scheduleNotification(user.email, 20, 0, 'pomeriggio')
+        }
+      }
+
+    } catch (error) {
+      console.error('Error scheduling notifications:', error)
+    }
+  }
+
+  // Programma una notifica per un orario specifico
+  private scheduleNotification(userEmail: string, hour: number, minute: number, turno: string): void {
+    const now = new Date()
+    const notificationTime = new Date()
+    notificationTime.setHours(hour, minute, 0, 0)
+
+    // Se l'orario è già passato oggi, programma per domani
+    if (notificationTime <= now) {
+      notificationTime.setDate(notificationTime.getDate() + 1)
+    }
+
+    const timeUntilNotification = notificationTime.getTime() - now.getTime()
+
+    setTimeout(() => {
+      this.sendMissingReportNotification(userEmail, turno)
+    }, timeUntilNotification)
+
+    console.log(`Notification scheduled for ${userEmail} at ${hour}:${minute.toString().padStart(2, '0')}`)
+  }
+
+  // Invia notifica di conferma
+  async sendConfirmationNotification(userEmail: string): Promise<void> {
+    const title = 'Rapporto Inviato'
+    const body = 'Il tuo rapporto giornaliero è stato inviato con successo!'
+    
+    await this.sendPushNotification(title, body, {
+      user: userEmail,
+      action: 'confirmation'
+    })
   }
 }
 

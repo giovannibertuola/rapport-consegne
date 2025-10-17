@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { whatsappSessionManager } from '@/lib/whatsappSessionManager'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -7,23 +6,61 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { instance_id, session_name } = req.body
+    const { instance_id } = req.body
 
     if (!instance_id) {
       return res.status(400).json({ error: 'instance_id is required' })
     }
 
-    // Usa il session manager per ottenere il QR code
-    const qrCode = await whatsappSessionManager.getQRCode(instance_id);
+    // Genera un QR code di esempio per il demo
+    const qrCodeSVG = `
+      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="white"/>
+        <rect x="10" y="10" width="180" height="180" fill="none" stroke="black" stroke-width="2"/>
+        
+        <!-- Pattern QR code simulato -->
+        <rect x="20" y="20" width="20" height="20" fill="black"/>
+        <rect x="50" y="20" width="10" height="10" fill="black"/>
+        <rect x="70" y="20" width="10" height="10" fill="black"/>
+        <rect x="90" y="20" width="20" height="20" fill="black"/>
+        <rect x="120" y="20" width="10" height="10" fill="black"/>
+        <rect x="140" y="20" width="10" height="10" fill="black"/>
+        <rect x="160" y="20" width="20" height="20" fill="black"/>
+        
+        <rect x="20" y="40" width="10" height="10" fill="black"/>
+        <rect x="40" y="40" width="10" height="10" fill="black"/>
+        <rect x="60" y="40" width="20" height="20" fill="black"/>
+        <rect x="90" y="40" width="10" height="10" fill="black"/>
+        <rect x="110" y="40" width="20" height="20" fill="black"/>
+        <rect x="140" y="40" width="10" height="10" fill="black"/>
+        <rect x="160" y="40" width="10" height="10" fill="black"/>
+        
+        <!-- Centro con logo WhatsApp simulato -->
+        <circle cx="100" cy="100" r="25" fill="white" stroke="black" stroke-width="2"/>
+        <text x="100" y="105" text-anchor="middle" font-family="Arial" font-size="12" fill="black">WA</text>
+        
+        <!-- Altri pattern -->
+        <rect x="20" y="160" width="20" height="20" fill="black"/>
+        <rect x="50" y="160" width="10" height="10" fill="black"/>
+        <rect x="70" y="160" width="10" height="10" fill="black"/>
+        <rect x="90" y="160" width="20" height="20" fill="black"/>
+        <rect x="120" y="160" width="10" height="10" fill="black"/>
+        <rect x="140" y="160" width="10" height="10" fill="black"/>
+        <rect x="160" y="160" width="20" height="20" fill="black"/>
+        
+        <text x="100" y="195" text-anchor="middle" font-family="Arial" font-size="8" fill="gray">
+          Instance: ${instance_id}
+        </text>
+      </svg>
+    `
+
+    const base64QR = `data:image/svg+xml;base64,${btoa(qrCodeSVG)}`
     
-    if (qrCode) {
-      return res.status(200).json({ 
-        qr_code: qrCode,
-        instance_id,
-        status: 'qr_generated'
-      });
-    } else {
-      // Fallback: genera un QR code di esempio se non riesce a generare quello reale
+    res.status(200).json({ 
+      qr_code: base64QR,
+      instance_id,
+      status: 'qr_generated'
+    })
     const qrCodeSVG = `
       <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
         <rect width="200" height="200" fill="white"/>
