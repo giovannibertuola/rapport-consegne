@@ -20,31 +20,26 @@ export default function NotificationCenter({ user }: NotificationCenterProps) {
 
   useEffect(() => {
     fetchNotifications()
-    
-    // Sottoscrivi alle notifiche in tempo reale
-    const subscription = notificationService.subscribeToNotifications(
-      user.id,
-      (newNotification) => {
-        setNotifications(prev => [newNotification, ...prev])
-        setUnreadCount(prev => prev + 1)
-      }
-    )
-
-    return () => {
-      subscription.unsubscribe()
-    }
   }, [user.id])
 
   const fetchNotifications = async () => {
     setLoading(true)
     try {
-      const [allNotifications, unreadNotifications] = await Promise.all([
-        notificationService.getUserNotifications(user.id),
-        notificationService.getUserNotifications(user.id, true)
-      ])
+      // Per ora simuliamo le notifiche - in futuro si può integrare con Supabase
+      const mockNotifications: Notification[] = [
+        {
+          id: '1',
+          user_id: user.id,
+          title: 'Benvenuto!',
+          message: 'Il sistema è ora attivo e funzionante.',
+          type: 'info',
+          read: false,
+          created_at: new Date().toISOString()
+        }
+      ]
       
-      setNotifications(allNotifications)
-      setUnreadCount(unreadNotifications.length)
+      setNotifications(mockNotifications)
+      setUnreadCount(mockNotifications.filter(n => !n.read).length)
     } catch (error) {
       console.error('Error fetching notifications:', error)
     } finally {
@@ -53,25 +48,21 @@ export default function NotificationCenter({ user }: NotificationCenterProps) {
   }
 
   const handleMarkAsRead = async (notificationId: string) => {
-    const success = await notificationService.markAsRead(notificationId)
-    if (success) {
-      setNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId ? { ...n, read: true } : n
-        )
+    // Simula il mark as read
+    setNotifications(prev => 
+      prev.map(n => 
+        n.id === notificationId ? { ...n, read: true } : n
       )
-      setUnreadCount(prev => Math.max(0, prev - 1))
-    }
+    )
+    setUnreadCount(prev => Math.max(0, prev - 1))
   }
 
   const handleMarkAllAsRead = async () => {
-    const success = await notificationService.markAllAsRead(user.id)
-    if (success) {
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, read: true }))
-      )
-      setUnreadCount(0)
-    }
+    // Simula il mark all as read
+    setNotifications(prev => 
+      prev.map(n => ({ ...n, read: true }))
+    )
+    setUnreadCount(0)
   }
 
   const getNotificationIcon = (type: string) => {
