@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
+import { whatsappSessionManager } from '@/lib/whatsappSessionManager'
 
-// Per ora simuliamo l'API - in produzione useresti whatsapp-web.js
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -9,44 +9,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { instance_id, session_name } = req.body
 
-    // Simula la generazione del QR code
-    // In produzione, qui inizializzeresti whatsapp-web.js:
-    /*
-    const { Client, LocalAuth } = require('whatsapp-web.js');
-    
-    const client = new Client({
-      authStrategy: new LocalAuth({ clientId: session_name }),
-      puppeteer: {
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      }
-    });
-
-    let qrCode = '';
-    
-    client.on('qr', (qr) => {
-      qrCode = qr;
-    });
-
-    client.on('ready', () => {
-      console.log('WhatsApp client is ready!');
-    });
-
-    await client.initialize();
-    
-    // Aspetta che il QR code sia generato
-    while (!qrCode) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    if (!instance_id) {
+      return res.status(400).json({ error: 'instance_id is required' })
     }
 
-    return res.status(200).json({ 
-      qr_code: qrCode,
-      instance_id,
-      status: 'qr_generated'
-    });
-    */
-
-    // Per ora generiamo un QR code realistico per il demo
+    // Usa il session manager per ottenere il QR code
+    const qrCode = await whatsappSessionManager.getQRCode(instance_id);
+    
+    if (qrCode) {
+      return res.status(200).json({ 
+        qr_code: qrCode,
+        instance_id,
+        status: 'qr_generated'
+      });
+    } else {
+      // Fallback: genera un QR code di esempio se non riesce a generare quello reale
     const qrCodeSVG = `
       <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
         <rect width="200" height="200" fill="white"/>

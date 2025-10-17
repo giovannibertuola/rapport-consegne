@@ -188,15 +188,22 @@ export class BayleisService {
   // Verifica lo stato della connessione
   async checkConnectionStatus(instanceId: string, apiKey: string): Promise<boolean> {
     try {
-      // Simuliamo la verifica dello stato
-      // In produzione faresti una chiamata alle API di Bayleis
-      
-      // Simula che dopo 5 secondi si connette (70% di probabilità)
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(Math.random() > 0.3)
-        }, 5000)
-      })
+      const response = await fetch('/api/whatsapp/check-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          instance_id: instanceId
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.is_connected;
+      }
+
+      return false
     } catch (error) {
       console.error('Error checking connection status:', error)
       return false
