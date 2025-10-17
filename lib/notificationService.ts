@@ -62,22 +62,9 @@ export class NotificationService {
         body: body,
         icon: '/icon-192x192.png',
         badge: '/icon-192x192.png',
-        vibrate: [100, 50, 100],
         data: data,
-        actions: [
-          {
-            action: 'open',
-            title: 'Apri Form',
-            icon: '/icon-192x192.png'
-          },
-          {
-            action: 'close',
-            title: 'Chiudi',
-            icon: '/icon-192x192.png'
-          }
-        ],
         requireInteraction: true
-      })
+      } as any)
 
       console.log('Push notification sent successfully')
     } catch (error) {

@@ -79,30 +79,18 @@ export class AllertService {
     try {
       const title = '🚛 Promemoria Rapporto Consegne'
       const appMessage = `Ciao ${user.nome}, ricordati di inviare il rapporto delle consegne di oggi entro la fine del turno.`
-      const whatsappMessage = `🚛 *Promemoria Rapporto Consegne*\n\nCiao ${user.nome}! 👋\n\nRicordati di inviare il rapporto delle consegne di oggi entro la fine del turno.\n\n📱 Accedi all'app: https://rapport-consegne-obj7dcmw-giovanni-bertuolas-projects.vercel.app\n\nGrazie! 🙏`
       
       // Invia notifica push (in-app)
       await notificationService.sendPushNotification(
-        user.id,
         title,
         appMessage,
-        'warning'
+        {
+          userId: user.id,
+          type: 'warning',
+          action: 'open_form',
+          url: '/dashboard'
+        }
       )
-      
-      // Invia email se configurato
-      await notificationService.sendEmailNotification(
-        user.email,
-        title,
-        appMessage
-      )
-      
-      // Invia WhatsApp se il numero è disponibile
-      if (user.cellulare) {
-        await notificationService.sendWhatsAppNotification(
-          user.cellulare,
-          whatsappMessage
-        )
-      }
       
       console.log(`Allert inviato con successo a ${user.nome} ${user.cognome} (${user.email})`)
     } catch (error) {
