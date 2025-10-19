@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AppUser } from '@/lib/supabase'
+import { AppUser, supabase } from '@/lib/supabase'
 import { userService, allarmeService, targaService } from '@/lib/database'
 import { Allarme, Targa } from '@/lib/supabase'
 import toast from 'react-hot-toast'
@@ -67,12 +67,18 @@ export default function AdminPanel({ user }: AdminPanelProps) {
     setLoading(true)
 
     try {
-      const userData = {
-        ...newUser,
-        password_hash: newUser.password_hash || 'temp_password_hash'
-      }
+      // Usa INSERT diretto con SQL per bypassare la cache
+      const { data, error } = await supabase.rpc('create_user_direct', {
+        p_nome: newUser.nome,
+        p_cognome: newUser.cognome,
+        p_cellulare: newUser.cellulare,
+        p_email: newUser.email,
+        p_privilegi: newUser.privilegi,
+        p_turno: newUser.turno
+      })
       
-      await userService.createUser(userData)
+      if (error) throw error
+      
       toast.success('Utente creato con successo')
       setNewUser({
         nome: '',
