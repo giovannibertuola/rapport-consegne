@@ -114,7 +114,7 @@ export default function AdminPanel({ user }: AdminPanelProps) {
       email: user.email,
       privilegi: user.privilegi,
       turno: user.turno,
-      password: ''
+      password_hash: ''
     })
   }
 
@@ -142,7 +142,7 @@ export default function AdminPanel({ user }: AdminPanelProps) {
         email: '',
         privilegi: 'utente',
         turno: null,
-        password: ''
+        password_hash: ''
       })
       fetchData()
     } catch (error) {
@@ -162,7 +162,7 @@ export default function AdminPanel({ user }: AdminPanelProps) {
       email: '',
       privilegi: 'utente',
       turno: null,
-      password: ''
+      password_hash: ''
     })
   }
 
