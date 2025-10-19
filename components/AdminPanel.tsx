@@ -28,7 +28,7 @@ export default function AdminPanel({ user }: AdminPanelProps) {
     email: '',
     privilegi: 'utente' as 'admin' | 'utente',
     turno: null as 'mattina' | 'pomeriggio' | null,
-    password: ''
+    password_hash: ''
   })
 
   const [newTarga, setNewTarga] = useState('')
@@ -69,7 +69,7 @@ export default function AdminPanel({ user }: AdminPanelProps) {
     try {
       const userData = {
         ...newUser,
-        password_hash: 'temp_password' // In produzione, hashare la password
+        password_hash: newUser.password_hash || 'temp_password_hash'
       }
       
       await userService.createUser(userData)
@@ -81,7 +81,7 @@ export default function AdminPanel({ user }: AdminPanelProps) {
         email: '',
         privilegi: 'utente',
         turno: null,
-        password: ''
+        password_hash: ''
       })
       fetchData()
     } catch (error) {
