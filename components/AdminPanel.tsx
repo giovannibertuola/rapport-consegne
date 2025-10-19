@@ -369,6 +369,18 @@ export default function AdminPanel({ user }: AdminPanelProps) {
                     <option value="pomeriggio">Pomeriggio (10:00-17:42)</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    className="input-field"
+                    value={newUser.password_hash}
+                    onChange={(e) => setNewUser(prev => ({ ...prev, password_hash: e.target.value }))}
+                    placeholder="Password temporanea"
+                  />
+                </div>
                 <div className="md:col-span-2 lg:col-span-3 flex space-x-4">
                   <button type="submit" className="btn-primary">
                     <Plus className="h-4 w-4 mr-2" />
