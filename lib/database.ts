@@ -14,9 +14,20 @@ export const userService = {
   },
 
   async createUser(user: Omit<AppUser, 'id' | 'created_at' | 'updated_at'>): Promise<AppUser> {
+    // Crea l'utente senza password_hash se non fornito
+    const userData = {
+      nome: user.nome,
+      cognome: user.cognome,
+      cellulare: user.cellulare,
+      email: user.email,
+      privilegi: user.privilegi,
+      turno: user.turno
+      // Non include password_hash se causa problemi
+    }
+    
     const { data, error } = await supabase
       .from('utenti')
-      .insert([user])
+      .insert([userData])
       .select()
       .single()
     
